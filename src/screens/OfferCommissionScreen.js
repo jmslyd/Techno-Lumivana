@@ -1,25 +1,24 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  Image,
-  Dimensions,
-  ScrollView,
-  TextInput,
-  Alert,
-  Modal,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useFonts } from 'expo-font';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const OfferCommissionScreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
@@ -41,7 +40,6 @@ const OfferCommissionScreen = ({ navigation }) => {
 
   const pickReferencePhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
     if (status !== 'granted') {
       Alert.alert('Permission required', 'Please grant access to your gallery.');
       return;
@@ -62,9 +60,8 @@ const OfferCommissionScreen = ({ navigation }) => {
 
   const takeReferencePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    
     if (status !== 'granted') {
-      Alert.alert('Permission required', 'Please grant camera permissions to take photos.');
+      Alert.alert('Permission required', 'Please grant camera access.');
       return;
     }
 
@@ -81,335 +78,198 @@ const OfferCommissionScreen = ({ navigation }) => {
   };
 
   const showPhotoOptions = () => {
-    Alert.alert(
-      'Add Product Photo',
-      'Choose an option',
-      [
-        {
-          text: 'Choose from Gallery',
-          onPress: pickReferencePhoto,
-        },
-        {
-          text: 'Take Photo',
-          onPress: takeReferencePhoto,
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-      ]
-    );
+    Alert.alert('Add Product Photo', 'Choose an option', [
+      { text: 'Choose from Gallery', onPress: pickReferencePhoto },
+      { text: 'Take Photo', onPress: takeReferencePhoto },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const deleteReferencePhoto = (index) => {
-    Alert.alert(
-      'Delete Photo',
-      'Are you sure you want to remove this product photo?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            const updatedPhotos = referencePhotos.filter((_, i) => i !== index);
-            setReferencePhotos(updatedPhotos);
-            
-            if (selectedPhotoIndex === index) {
-              setShowPhotoModal(false);
-              setSelectedPhotoIndex(null);
-            }
-          },
+    Alert.alert('Delete Photo', 'Remove this photo?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          const updatedPhotos = referencePhotos.filter((_, i) => i !== index);
+          setReferencePhotos(updatedPhotos);
+          if (selectedPhotoIndex === index) {
+            setShowPhotoModal(false);
+            setSelectedPhotoIndex(null);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  const openPhotoModal = (index) => {
-    setSelectedPhotoIndex(index);
-    setShowPhotoModal(true);
-  };
-
-  const closePhotoModal = () => {
-    setShowPhotoModal(false);
-    setSelectedPhotoIndex(null);
-  };
-
-  const handleCalendarPress = () => {
-    setShowCalendar(true);
-  };
-
+  const handleCalendarPress = () => setShowCalendar(true);
   const handleDateChange = (event, date) => {
     setShowCalendar(false);
     if (date) {
-      setSelectedDate(date);
-      // Format date as MM/DD/YYYY
-      const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
+      const formattedDate = `${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
       setDateRequested(formattedDate);
     }
   };
 
-  const formatDateForDisplay = (dateString) => {
-    if (!dateString) return '';
-    return dateString;
-  };
-
   const handleConfirm = () => {
-    // Validate required fields
-    if (!commissionName.trim()) {
-      Alert.alert('Missing Information', 'Please enter a commission name.');
+    if (!commissionName || !description || !dateRequested || !contactInfo) {
+      Alert.alert('Missing Info', 'Please fill in all required fields.');
       return;
     }
-
-    if (!description.trim()) {
-      Alert.alert('Missing Information', 'Please enter a description.');
-      return;
-    }
-
-    if (!dateRequested.trim()) {
-      Alert.alert('Missing Information', 'Please select a date.');
-      return;
-    }
-
-    if (!contactInfo.trim()) {
-      Alert.alert('Missing Information', 'Please enter your contact information.');
-      return;
-    }
-
-    // Show success alert
-    Alert.alert(
-      'Commission Offer Sent!',
-      'Your commission offer has been submitted successfully. You will be notified when someone accepts your offer.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Navigate to HomeScreen with Home tab active
-            navigation.navigate('Home', { activeTab: 'Home' });
-          }
-        }
-      ]
-    );
+    Alert.alert('Offer Sent!', 'Commission offer submitted successfully.', [
+      {
+        text: 'OK',
+        onPress: () => navigation.navigate('Home', { activeTab: 'Home' }),
+      },
+    ]);
   };
 
   const handleDecline = () => {
-    Alert.alert(
-      'Cancel Commission Offer',
-      'Are you sure you want to cancel this commission offer? All entered information will be lost.',
-      [
-        {
-          text: 'No, Keep Editing',
-          style: 'cancel',
-        },
-        {
-          text: 'Yes, Cancel',
-          style: 'destructive',
-          onPress: () => {
-            // Navigate back to previous screen
-            navigation.goBack();
-          },
-        },
-      ]
-    );
+    Alert.alert('Cancel Offer', 'Cancel this commission offer?', [
+      { text: 'No', style: 'cancel' },
+      { text: 'Yes', style: 'destructive', onPress: () => navigation.goBack() },
+    ]);
   };
 
   return (
     <LinearGradient
-      colors={['#CFAD01', '#30204D', '#0B005F']}
-      locations={[0, 0.58, 0.84]}
+      colors={['#1B0E2A', '#2A1B40', '#0E0B2A']}
       style={styles.container}
     >
       <SafeAreaView style={{ flex: 1 }}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        />
+        <StatusBar barStyle="light-content" translucent />
 
         {/* Header */}
         <View style={styles.header}>
-          {/* Back Button on Left Side */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>←</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back-outline" size={26} color="#FFD700" />
           </TouchableOpacity>
-
-          {/* Screen Title in Header */}
           <Text style={[styles.screenTitle, { fontFamily: 'Milonga' }]}>
             Offer Commission
           </Text>
-
-          {/* Empty View for balance */}
-          <View style={styles.placeholder} />
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Main Content */}
+        {/* Scrollable Content */}
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Commission Details Card */}
           <View style={styles.detailsCard}>
             {/* Commission Name */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Commission Name</Text>
-              <TextInput
-                style={styles.textInput}
-                value={commissionName}
-                onChangeText={setCommissionName}
-                placeholder="Enter Commission Name"
-                placeholderTextColor="rgba(255, 255, 255, 0.6)"
-              />
-            </View>
+            <Text style={styles.detailLabel}>Commission Name</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Enter Commission Name"
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              value={commissionName}
+              onChangeText={setCommissionName}
+            />
 
             {/* Description */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Description</Text>
-              <TextInput
-                style={styles.textInput}
-                value={description}
-                onChangeText={setDescription}
-                placeholder="Describe the commission details here..."
-                placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-              />
-            </View>
+            <Text style={styles.detailLabel}>Description</Text>
+            <TextInput
+              style={[styles.textInput, { height: 100 }]}
+              placeholder="Describe the commission details..."
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              multiline
+              value={description}
+              onChangeText={setDescription}
+            />
 
             {/* Date Requested */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Date Requested</Text>
-              <View style={styles.dateInputContainer}>
-                <TextInput
-                  style={styles.dateTextInput}
-                  value={formatDateForDisplay(dateRequested)}
-                  onChangeText={setDateRequested}
-                  placeholder="MM/DD/YYYY"
-                  placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                  editable={false} // Make it read-only since we're using calendar
-                />
-                <TouchableOpacity style={styles.calendarButton} onPress={handleCalendarPress}>
-                  <Ionicons name="calendar-outline" size={24} color="#FFD700" />
-                </TouchableOpacity>
+            <Text style={styles.detailLabel}>Date Requested</Text>
+            <TouchableOpacity
+              style={styles.dateInputContainer}
+              onPress={handleCalendarPress}
+              activeOpacity={0.8}
+            >
+              <TextInput
+                style={styles.dateTextInput}
+                value={dateRequested}
+                placeholder="MM/DD/YYYY"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                editable={false}
+                pointerEvents="none"
+              />
+              <View style={styles.calendarButton}>
+                <Ionicons name="calendar-outline" size={22} color="#FFD700" />
               </View>
-            </View>
+            </TouchableOpacity>
 
             {/* Category */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Category</Text>
-              <TextInput
-                style={styles.textInput}
-                value={category}
-                onChangeText={setCategory}
-                placeholder="Custom Commission"
-                placeholderTextColor="rgba(255, 255, 255, 0.6)"
-              />
-            </View>
+            <Text style={styles.detailLabel}>Category</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Custom Commission"
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              value={category}
+              onChangeText={setCategory}
+            />
 
-            {/* Photo of the Product - Same design as RequestCommissionScreen */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Product Photos ({referencePhotos.length})</Text>
-              <View style={styles.photoGrid}>
-                {referencePhotos.length === 0 ? (
-                  <Text style={styles.noPhotosText}>
-                    No product photos yet. Add one below!
-                  </Text>
-                ) : (
-                  referencePhotos.map((uri, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.photoItem}
-                      onPress={() => openPhotoModal(index)}
-                      onLongPress={() => deleteReferencePhoto(index)}
-                    >
-                      <Image source={{ uri }} style={styles.gridPhoto} resizeMode="cover" />
-                      <View style={styles.deleteOverlay}>
-                        <Ionicons name="trash-outline" size={18} color="#fff" />
-                      </View>
-                    </TouchableOpacity>
-                  ))
-                )}
-              </View>
-
-              <TouchableOpacity style={styles.addPhotoButton} onPress={showPhotoOptions}>
-                <Ionicons name="add-circle-outline" size={28} color="#000" />
-                <Text style={styles.addPhotoText}>Add Product Photo</Text>
-              </TouchableOpacity>
-
-              {referencePhotos.length > 0 && (
-                <Text style={styles.deleteHintText}>
-                  Long press a photo to delete it
+            {/* Product Photos */}
+            <Text style={styles.detailLabel}>
+              Product Photos ({referencePhotos.length})
+            </Text>
+            <View style={styles.photoGrid}>
+              {referencePhotos.length === 0 ? (
+                <Text style={styles.noPhotosText}>
+                  No product photos yet. Add one below!
                 </Text>
+              ) : (
+                referencePhotos.map((uri, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    style={styles.photoItem}
+                    onLongPress={() => deleteReferencePhoto(i)}
+                  >
+                    <Image source={{ uri }} style={styles.gridPhoto} />
+                  </TouchableOpacity>
+                ))
               )}
             </View>
 
-            {/* Contact Information */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailLabel}>Contact Information</Text>
-              <TextInput
-                style={styles.textInput}
-                value={contactInfo}
-                onChangeText={setContactInfo}
-                placeholder="Enter your email"
-                placeholderTextColor="rgba(255, 255, 255, 0.6)"
-                keyboardType="email-address"
-              />
-            </View>
+            <TouchableOpacity style={styles.addPhotoButton} onPress={showPhotoOptions}>
+              <Ionicons name="add-circle-outline" size={26} color="#000" />
+              <Text style={styles.addPhotoText}>Add Product Photo</Text>
+            </TouchableOpacity>
 
-            {/* Confirm Section */}
-            <View style={styles.detailSection}>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.buttonInput, styles.primaryButton]}
-                  onPress={handleConfirm}
-                >
-                  <Text style={styles.primaryButtonText}>Confirm</Text>
-                </TouchableOpacity>
+            {/* Contact Info */}
+            <Text style={styles.detailLabel}>Contact Information</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Enter your email"
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              value={contactInfo}
+              onChangeText={setContactInfo}
+              keyboardType="email-address"
+            />
 
-                <TouchableOpacity 
-                  style={[styles.buttonInput, styles.secondaryButton]}
-                  onPress={handleDecline}
-                >
-                  <Text style={styles.secondaryButtonText}>Decline</Text>
-                </TouchableOpacity>
-              </View>
+            {/* Buttons */}
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={[styles.buttonInput, styles.primaryButton]}
+                onPress={handleConfirm}
+              >
+                <Text style={styles.primaryButtonText}>Confirm</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.buttonInput, styles.secondaryButton]}
+                onPress={handleDecline}
+              >
+                <Text style={styles.secondaryButtonText}>Decline</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
 
-        {/* Product Photo Full Screen Modal */}
-        <Modal
-          visible={showPhotoModal}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={closePhotoModal}
-        >
-          <View style={styles.fullScreenModalOverlay}>
-            <TouchableOpacity 
-              style={styles.fullScreenCloseButton}
-              onPress={closePhotoModal}
-            >
-              <Ionicons name="close" size={30} color="#fff" />
-            </TouchableOpacity>
-            
-            {selectedPhotoIndex !== null && referencePhotos[selectedPhotoIndex] && (
-              <Image 
-                source={{ uri: referencePhotos[selectedPhotoIndex] }} 
-                style={styles.fullScreenPhoto} 
-                resizeMode="contain"
-              />
-            )}
-          </View>
-        </Modal>
-
-        {/* DateTimePicker */}
+        {/* Date Picker */}
         {showCalendar && (
           <DateTimePicker
             value={selectedDate}
             mode="date"
             display="spinner"
             onChange={handleDateChange}
-            style={styles.calendarPicker}
-            textColor="#FFFFFF"
             themeVariant="dark"
           />
         )}
@@ -426,194 +286,92 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 50,
     paddingHorizontal: 24,
-    paddingBottom: 16,
-    backgroundColor: 'transparent',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 28,
-    color: '#fff',
-    fontWeight: '300',
-  },
-  screenTitle: {
-    fontSize: 24,
-    color: '#fff',
-    textAlign: 'center',
-    flex: 1,
-  },
-  placeholder: {
-    width: 40, // Same as backButton for balance
-  },
-  content: { 
-    flex: 1, 
-    paddingHorizontal: 24,
-  },
+  backButton: { width: 40, alignItems: 'center' },
+  screenTitle: { fontSize: 24, color: '#FFD700', textAlign: 'center' },
+  content: { flex: 1, paddingHorizontal: 20 },
   detailsCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
     padding: 20,
-    marginBottom: 30,
-    width: width * 1.0,
-    alignSelf: 'center',
-  },
-  detailSection: {
-    marginBottom: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    marginTop: 20,
   },
   detailLabel: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#FFD700',
     fontWeight: '600',
     marginBottom: 8,
+    marginTop: 12,
   },
   textInput: {
-    fontSize: 16,
-    color: '#fff',
     borderWidth: 1,
     borderColor: '#FFD700',
-    borderRadius: 8,
+    borderRadius: 10,
+    color: '#fff',
     padding: 12,
-    textAlignVertical: 'top',
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
-  // Date Input with Calendar Icon INSIDE the input
   dateInputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#FFD700',
-    borderRadius: 8,
-    backgroundColor: 'transparent',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
   },
-  dateTextInput: {
-    fontSize: 16,
-    color: '#fff',
-    padding: 12,
-    flex: 1,
-    textAlignVertical: 'top',
-  },
+  dateTextInput: { flex: 1, padding: 12, color: '#fff' },
   calendarButton: {
-    padding: 12,
+    paddingHorizontal: 10,
     borderLeftWidth: 1,
     borderLeftColor: '#FFD700',
   },
-  buttonInput: {
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginVertical: 10,
+  },
+  photoItem: {
+    width: '47%',
+    aspectRatio: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#FFD700',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 50,
   },
-  calendarPicker: {
-    backgroundColor: '#30204D',
-  },
-  // Photo Grid Styles - Exact same as RequestCommissionScreen
-  photoGrid: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    justifyContent: 'space-between' 
-  },
-  photoItem: { 
-    width: '48%', 
-    aspectRatio: 1, 
-    marginBottom: 10,
-    position: 'relative',
-  },
-  gridPhoto: { 
-    width: '100%', 
-    height: '100%', 
-    borderRadius: 8, 
-    borderWidth: 1, 
-    borderColor: 'rgba(255, 215, 0, 0.3)' 
-  },
-  noPhotosText: { 
-    color: '#FFD700', 
-    textAlign: 'center', 
-    opacity: 0.7,
-    width: '100%',
-    paddingVertical: 20,
-  },
+  gridPhoto: { width: '100%', height: '100%' },
+  noPhotosText: { color: '#FFD700', textAlign: 'center', opacity: 0.8 },
   addPhotoButton: {
-    marginTop: 15,
-    backgroundColor: '#FFD700',
-    borderRadius: 20,
     flexDirection: 'row',
+    backgroundColor: '#FFD700',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
+    marginTop: 10,
   },
-  addPhotoText: { 
-    color: '#000', 
-    fontSize: 14, 
-    fontWeight: '600', 
-    marginLeft: 5 
-  },
-  deleteOverlay: { 
-    position: 'absolute', 
-    top: 6, 
-    right: 6, 
-    backgroundColor: 'rgba(0,0,0,0.6)', 
-    borderRadius: 12, 
-    padding: 3 
-  },
-  deleteHintText: { 
-    color: '#FFD700', 
-    fontSize: 12, 
-    textAlign: 'center', 
-    marginTop: 5, 
-    opacity: 0.6 
-  },
-  // Full Screen Photo Modal Styles
-  fullScreenModalOverlay: {
+  addPhotoText: { marginLeft: 6, fontWeight: '600', color: '#000' },
+  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, gap: 12 },
+  buttonInput: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
     alignItems: 'center',
   },
-  fullScreenCloseButton: {
-    position: 'absolute',
-    top: 60,
-    right: 20,
-    zIndex: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
-    padding: 5,
-  },
-  fullScreenPhoto: {
-    width: width * 0.9,
-    height: width * 0.9,
-    borderRadius: 10,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 15,
-  },
-  primaryButton: {
-    backgroundColor: '#FFD700',
-    flex: 1,
-  },
+  primaryButton: { backgroundColor: '#FFD700' },
   secondaryButton: {
     backgroundColor: 'transparent',
-    flex: 1,
+    borderWidth: 1,
+    borderColor: '#FFD700',
   },
-  primaryButtonText: { 
-    color: '#000', 
-    fontSize: 16, 
-    fontWeight: '600' 
-  },
-  secondaryButtonText: {
-    color: '#FFD700',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  primaryButtonText: { color: '#000', fontWeight: '700' },
+  secondaryButtonText: { color: '#FFD700', fontWeight: '700' },
 });
 
 export default OfferCommissionScreen;
